@@ -8,7 +8,10 @@ export default async function ArchivePage() {
   const supabase = await createClient();
   if (!supabase) return <SetupRequired />;
 
-  const { data: deployments } = await supabase.from('deployments').select('*').order('deployed_at', { ascending: false });
+  const { data: { user } } = await supabase.auth.getUser();
+  if(!user) return <SetupRequired />;
+
+  const { data: deployments } = await supabase.from('deployments').select('*').eq('user_id', user.id).order('deployed_at', { ascending: false });
   const activeDeployments = deployments || [];
 
   return (

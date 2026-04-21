@@ -8,8 +8,11 @@ export default async function PlannerPage() {
   const supabase = await createClient();
   if (!supabase) return <SetupRequired />;
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if(!user) return <SetupRequired />;
+
   // Fetch active project
-  const { data: project } = await supabase.from('projects').select('*, tech_stacks(*), milestones(*)').limit(1).single();
+  const { data: project } = await supabase.from('projects').select('*, tech_stacks(*), milestones(*)').eq('user_id', user.id).limit(1).single();
   const milestones = project?.milestones?.sort((a: any, b: any) => a.sort_order - b.sort_order) || [];
 
   return (

@@ -2,15 +2,20 @@ import React from 'react';
 import { History, Code, Brain, Bell, Megaphone, MoreVertical, Plus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { SetupRequired } from '@/components/SupabaseGuard';
+import { CreateProjectForm } from '@/components/CreateProjectForm';
 
 export default async function Dashboard() {
   const supabase = await createClient();
   if (!supabase) return <SetupRequired />;
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if(!user) return <SetupRequired />;
+
   // Fetch from DB
-  const { data: logs } = await supabase.from('execution_logs').select('*').order('created_at', { ascending: false }).limit(10);
+  const { data: logs } = await supabase.from('execution_logs').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10);
   const { data: project } = await supabase.from('projects')
     .select('*')
+    .eq('user_id', user.id)
     .eq('status', 'ACTIVE_BUILD')
     .order('created_at', { ascending: false })
     .limit(1)
@@ -29,7 +34,7 @@ export default async function Dashboard() {
   const heatmapBlocks = Array.from({ length: 52 }).map((_, w) => (
     <div key={w} className="flex flex-col gap-1 flex-shrink-0">
       {Array.from({ length: 7 }).map((_, d) => {
-        const val = (w * 7 + d * 13) % 50;
+        const val = executionLogs.length > 0 ? ((w * 7 + d * 13) % 50) : 0; 
         return <div key={d} className={`w-2 h-2 md:w-3 md:h-3 ${getHeatClass(val)}`} />;
       })}
     </div>
@@ -62,22 +67,23 @@ export default async function Dashboard() {
             </div>
             
             <div className="space-y-4 relative z-10">
-              <div className="flex justify-between items-end mb-2">
-                <span className="font-data-sm text-[#71717A] text-[10px]">PHASE: 04 / TESTING</span>
-                <span className="font-data-lg text-[#00E5FF]">{project?.progress || 0}%</span>
-              </div>
-              <div className="h-1 bg-[#1C1C1E] w-full flex overflow-hidden">
-                <div className={`h-full bg-[#00E5FF] transition-all duration-1000`} style={{ width: `${project?.progress || 0}%` }}></div>
-              </div>
-              <div className="grid grid-cols-7 gap-1 pt-2">
-                <div className="text-[9px] font-label-caps text-[#00E5FF] text-center">D1</div>
-                <div className="text-[9px] font-label-caps text-[#00E5FF] text-center">D2</div>
-                <div className="text-[9px] font-label-caps text-[#00E5FF] text-center">D3</div>
-                <div className="text-[9px] font-label-caps text-[#00E5FF] text-center font-bold">D4</div>
-                <div className="text-[9px] font-label-caps text-[#444] text-center">D5</div>
-                <div className="text-[9px] font-label-caps text-[#444] text-center">D6</div>
-                <div className="text-[9px] font-label-caps text-[#444] text-center">D7</div>
-              </div>
+              {project ? (
+                <>
+                  <div className="flex justify-between items-end mb-2">
+                    <span className="font-data-sm text-[#71717A] text-[10px]">PHASE: 04 / TESTING</span>
+                    <span className="font-data-lg text-[#00E5FF]">{project?.progress || 0}%</span>
+                  </div>
+                  <div className="h-1 bg-[#1C1C1E] w-full flex overflow-hidden">
+                    <div className={`h-full bg-[#00E5FF] transition-all duration-1000`} style={{ width: `${project?.progress || 0}%` }}></div>
+                  </div>
+                </>
+              ) : (
+                <CreateProjectForm 
+                  supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL || ''} 
+                  supabaseKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''} 
+                  userId={user.id} 
+                />
+              )}
             </div>
             {/* Scanline effect */}
             <div className="absolute inset-0 bg-gradient-to-b from-[#00E5FF]/5 to-transparent pointer-events-none opacity-20"></div>
@@ -86,17 +92,16 @@ export default async function Dashboard() {
           <section className="lg:col-span-5 bg-[#00E5FF] text-black p-6 border border-[#00E5FF] relative overflow-hidden">
             <span className="font-label-caps text-[10px] text-black/60 block mb-1">CRITICAL_TASK</span>
             <h3 className="font-headline-md font-bold mb-8 leading-none text-black">
-              {project?.problem_statement ? 'Review Issue Log' : 'Optimize Model Inference Speed'}
+              {project?.problem_statement || 'System Idle'}
             </h3>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <span className="font-label-caps text-[10px] text-black/60">SESSION_REMAINING</span>
-                <div className="font-data-lg text-3xl font-black tracking-tighter">01:42:59</div>
+            {project && (
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <span className="font-label-caps text-[10px] text-black/60">ACTIVE_PROJECT</span>
+                  <div className="font-data-lg text-lg font-black tracking-tighter uppercase">{project.name}</div>
+                </div>
               </div>
-              <button className="bg-black text-[#00E5FF] px-4 py-2 text-xs font-label-caps hover:bg-black/80 transition-colors">
-                COMPLETE_STEP
-              </button>
-            </div>
+            )}
             <div className="absolute bottom-[-10px] right-[-10px] text-8xl font-black text-black/10 select-none pointer-events-none uppercase">
                 FOCUS
             </div>

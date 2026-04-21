@@ -2,13 +2,20 @@ import React from 'react';
 import { Link2, Share2, Rocket } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { SetupRequired } from '@/components/SupabaseGuard';
+import { TaskRow } from '@/components/TaskRow';
+import { AddTaskInline } from '@/components/AddTaskInline';
 
 export default async function ExecutionPage() {
   const supabase = await createClient();
   if (!supabase) return <SetupRequired />;
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if(!user) return <SetupRequired />;
+
   // Fetch tasks
-  const { data: tasks } = await supabase.from('tasks').select('*').order('created_at', { ascending: true });
+  const { data: tasks } = await supabase.from('tasks').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
+  const { data: project } = await supabase.from('projects').select('id').eq('user_id', user.id).limit(1).single();
+  const projectId = project?.id;
   
   const codeTasks = tasks?.filter(t => t.category === 'CODE_TASKS') || [];
   const researchTasks = tasks?.filter(t => t.category === 'RESEARCH_PHASE') || [];
@@ -33,15 +40,17 @@ export default async function ExecutionPage() {
                 </h3>
                 <div className="space-y-2">
                   {codeTasks.length > 0 ? codeTasks.map(task => (
-                    <div key={task.id} className={`flex items-center gap-3 p-2 border transition-all cursor-pointer group ${task.is_completed ? 'bg-[#1C1C1E] border-transparent hover:border-[#2A2A2E]' : 'bg-[#0A0A0B] border-[#2A2A2E] hover:border-[#00E5FF]/50'}`}>
-                      <div className={`w-4 h-4 border flex items-center justify-center ${task.is_completed ? 'border-[#00E5FF]' : 'border-[#71717A]'}`}>
-                        {task.is_completed && <span className="text-[#00E5FF] text-[12px] font-bold">✓</span>}
-                      </div>
-                      <span className={`font-['Space_Grotesk'] text-sm ${task.is_completed ? 'text-white' : 'text-[#71717A]'}`}>{task.title}</span>
-                    </div>
+                    <TaskRow 
+                        key={task.id} 
+                        task={task} 
+                        themeColor="#00E5FF" 
+                        supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL || ''} 
+                        supabaseKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''} 
+                    />
                   )) : (
                      <div className="text-[10px] font-data-sm text-[#71717A]">NO_TASKS</div>
                   )}
+                  {projectId && <AddTaskInline projectId={projectId} userId={user.id} type="CODE_TASKS" supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL || ''} supabaseKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''} />}
                 </div>
               </div>
 
@@ -52,15 +61,17 @@ export default async function ExecutionPage() {
                 </h3>
                 <div className="space-y-2">
                   {researchTasks.length > 0 ? researchTasks.map(task => (
-                    <div key={task.id} className={`flex items-center gap-3 p-2 border transition-all cursor-pointer group ${task.is_completed ? 'bg-[#1C1C1E] border-transparent hover:border-[#2A2A2E]' : 'bg-[#0A0A0B] border-[#2A2A2E] hover:border-[#00E5FF]/50'}`}>
-                      <div className={`w-4 h-4 border flex items-center justify-center ${task.is_completed ? 'border-[#fec931]' : 'border-[#71717A]'}`}>
-                        {task.is_completed && <span className="text-[#fec931] text-[12px] font-bold">✓</span>}
-                      </div>
-                      <span className={`font-['Space_Grotesk'] text-sm ${task.is_completed ? 'text-white' : 'text-[#71717A]'}`}>{task.title}</span>
-                    </div>
+                    <TaskRow 
+                        key={task.id} 
+                        task={task} 
+                        themeColor="#fec931" 
+                        supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL || ''} 
+                        supabaseKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''} 
+                    />
                   )) : (
                      <div className="text-[10px] font-data-sm text-[#71717A]">NO_TASKS</div>
                   )}
+                  {projectId && <AddTaskInline projectId={projectId} userId={user.id} type="RESEARCH_PHASE" supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL || ''} supabaseKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''} />}
                 </div>
               </div>
 
@@ -71,15 +82,17 @@ export default async function ExecutionPage() {
                 </h3>
                 <div className="space-y-2">
                   {socialTasks.length > 0 ? socialTasks.map(task => (
-                    <div key={task.id} className={`flex items-center gap-3 p-2 border transition-all cursor-pointer group ${task.is_completed ? 'bg-[#1C1C1E] border-transparent hover:border-[#2A2A2E]' : 'bg-[#0A0A0B] border-[#2A2A2E] hover:border-[#00E5FF]/50'}`}>
-                      <div className={`w-4 h-4 border flex items-center justify-center ${task.is_completed ? 'border-[#2ff801]' : 'border-[#71717A]'}`}>
-                        {task.is_completed && <span className="text-[#2ff801] text-[12px] font-bold">✓</span>}
-                      </div>
-                      <span className={`font-['Space_Grotesk'] text-sm ${task.is_completed ? 'text-white' : 'text-[#71717A]'}`}>{task.title}</span>
-                    </div>
+                    <TaskRow 
+                        key={task.id} 
+                        task={task} 
+                        themeColor="#2ff801" 
+                        supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL || ''} 
+                        supabaseKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''} 
+                    />
                   )) : (
                     <div className="text-[10px] font-data-sm text-[#71717A]">NO_TASKS</div>
                   )}
+                  {projectId && <AddTaskInline projectId={projectId} userId={user.id} type="SOCIAL_DISTRIBUTION" supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL || ''} supabaseKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''} />}
                 </div>
               </div>
             </div>
