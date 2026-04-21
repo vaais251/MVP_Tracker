@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --font-inter: var(--font-inter), sans-serif;
+  --font-space: var(--font-space), sans-serif;
+  --font-mono: var(--font-mono), monospace;
+}
+
+body {
+  background-color: #0A0A0B;
+  color: #e5e2e3;
+}
+
+.font-body-md { font-family: var(--font-inter), sans-serif; }
+.font-label-caps { font-family: var(--font-space), sans-serif; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; font-size: 11px; }
+.font-data-sm { font-family: var(--font-mono), monospace; font-size: 12px; letter-spacing: 0.02em; }
+.font-data-lg { font-family: var(--font-mono), monospace; font-size: 18px; font-weight: 500; letter-spacing: 0.05em; }
+.font-headline-md { font-family: var(--font-space), sans-serif; font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+.font-headline-lg { font-family: var(--font-space), sans-serif; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
+
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #0A0A0B; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #2A2A2E; border-radius: 2px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #00E5FF; }
+
+.cyber-grid {
+  background-image: linear-gradient(#2A2A2E 1px, transparent 1px), linear-gradient(90deg, #2A2A2E 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.editor-line {
+  background: repeating-linear-gradient(transparent, transparent 23px, #2A2A2E 23px, #2A2A2E 24px);
+  line-height: 24px;
+}
+
+.glow-border:hover {
+  border-color: #00E5FF;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
+}
